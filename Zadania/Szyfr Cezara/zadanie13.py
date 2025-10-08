@@ -1,35 +1,22 @@
 #Napisz program wczytujący dowolny tekst z klawiatury oraz liczbę będącą kluczem szyfrowania (liczbę kolumn).
 #Program powinien szyfrować wczytany tekst szyfrem przestawieniowym polegającym na spiralnym odczytaniu
 #tekstu jawnego zapisanego wierszami
-tekst = input("Podaj tekst: ")
+import math
+
+tekst_jawny = input("Podaj tekst: ").replace(" ", "")
 klucz = int(input("Podaj klucz: "))
 
-slowa = tekst.split()
+wiersze = math.ceil(len(tekst_jawny) / klucz)
+tekst_jawny += 'X' * (wiersze * klucz - len(tekst_jawny))
 
-szyfrogram = []
-for slowo in slowa:
-    zaszyfrowane = ""
-    for znak in slowo:
-        if znak.isalpha():
-            if znak.isupper():
-                nowy = chr((ord(znak) - ord('A') + klucz) % 26 + ord('A'))
-            else:
-                nowy = chr((ord(znak) - ord('a') + klucz) % 26 + ord('a'))
-            zaszyfrowane += nowy
-        else:
-            zaszyfrowane += znak
-    szyfrogram.append(zaszyfrowane)
+macierz = [list(tekst_jawny[i * klucz:(i + 1) * klucz]) for i in range(wiersze)]
 
-print("Szyfrogram:", " ".join(szyfrogram))
+spirala = [
+    (1, 1), (2, 3), (3, 3), (3, 2), (3, 1), (3, 0),
+    (2, 0), (2, 1), (1, 2), (0, 3), (0, 2), (0, 1),
+    (0, 0), (1, 0), (2, 2), (1, 3), (1, 0)
+]
 
-liczba_kolumn = len(slowa)
-liczba_wierszy = max(len(s) for s in szyfrogram)
+szyfrogram = ''.join(macierz[w][k] for w, k in spirala)
 
-for w in range(liczba_wierszy):
-    for k in range(liczba_kolumn):
-        if w < len(szyfrogram[k]):
-            print(szyfrogram[k][w], end=" ")
-        else:
-            print(" ", end=" ")
-    print()
-
+print(szyfrogram)
