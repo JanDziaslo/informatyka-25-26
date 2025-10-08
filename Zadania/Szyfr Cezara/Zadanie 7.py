@@ -1,3 +1,8 @@
+# Przygotuj plik tekstowy z dowolnym tekstem zawierającym tylko słowa i oddzielające je spacje, bez znaków
+# interpunkcyjnych. Napisz program, który odczyta dane z pliku wejściowego i wypisze, ile wyrazów rozpoczyna
+# się na poszczególne litery.
+
+
 alfabet = "aąbcćdeęfghijklłmnńoópqrsśtuvwxyzźż"
 
 licznik = [0] * len(alfabet)
