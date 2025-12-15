@@ -1,0 +1,27 @@
+1. Oszacuj złożoność pamięciową i  czasową algorytmu sprawdzającego, czy dany napis jest palidromem.
+
+Czasowa: O(n/2) - Bo jest porównywanie znaków od początku i końca napisu do środka.
+Pamięciowa: O(1) - Bo nie używa dodatkowej pamięci.
+
+
+2. Podaj optymalny algorytm liczenia sumy kolejnych liczb naturalnych od a do b, gdzie a<b. Oszacuj złożoność czasowa tego algorytmu.
+
+for i in range(a, b + 1):
+    suma += i
+
+Czasowa: O(n) - gdzie n to liczba liczb od a do b.
+
+Jest jeszcze jakis wzór na sume z matmy i wtedy jest O(1), bo sie robi jedno obliczenie zamiast przechodzic przez cala tabele
+
+S = n(n+1) / 2
+
+3. Oszacuj złożoność czasową algorytmów zamiany liczby dziesiętnej na binarną oraz szybkiego podnoszenia do potęgi.
+
+Dziesiętna na binarną: O(log n)
+Szybkie podnoszenie do potęgi: O(log n)
+
+
+4. Oszacuj pesymistyczną złożoność czasową algorytmu Euklidesa w wersjach z odejmowaniem oraz dzieleniem.
+
+Odejmowanie: O(n)
+Dzielenie: O(log n)
