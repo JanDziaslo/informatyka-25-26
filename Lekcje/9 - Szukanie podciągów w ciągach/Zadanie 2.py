@@ -1,16 +1,17 @@
+import random
+
 tablica = []
 
 n = int(input("Podaj długość tabeli: "))
 
 for i in range(n):
-    print(f"Podaj element {i+1} tablicy: ", end="")
-    tablica.append(int(input()))
+    tablica.append(random.randint(-10, 10))
 
 # Znajdowanie maksymalnej długości (podciąg ściśle rosnący)
 maks_dl = 1
 akt_dl = 1
 for i in range(1, n):
-    if tablica[i] > tablica[i-1]:
+    if tablica[i] >= tablica[i-1]:
         akt_dl += 1
     else:
         akt_dl = 1
@@ -25,7 +26,7 @@ if maks_dl == 1:
         podciagi.append([x])
 else:
     for i in range(1, n):
-        if tablica[i] > tablica[i-1]:
+        if tablica[i] >= tablica[i-1]:
             akt_dl += 1
         else:
             akt_dl = 1
