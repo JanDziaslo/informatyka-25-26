@@ -26,15 +26,18 @@ jobs:
         id: files
         run: |
           if [ -n "$(git rev-list --count HEAD~1..HEAD 2>/dev/null)" ]; then
-            modified=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            # Pobierz pliki ze zmianami i statystykami per plik
+            modified_json=$(git diff --numstat HEAD~1 HEAD 2>/dev/null | \
+              awk '{gsub(/-/, "0"); print "{\""$3"\":{\"add\":"$1",\"del\":"$2"}}"}' | \
+              jq -s 'add')
             insertions=$(git diff --numstat HEAD~1 HEAD 2>/dev/null | awk '{add += $1} END {print add+0}')
             deletions=$(git diff --numstat HEAD~1 HEAD 2>/dev/null | awk '{del += $2} END {print del+0}')
           else
-            modified="[]"
+            modified_json="{}"
             insertions="0"
             deletions="0"
           fi
-          echo "modified=$modified" >> $GITHUB_OUTPUT
+          echo "modified_json=$modified_json" >> $GITHUB_OUTPUT
           echo "insertions=$insertions" >> $GITHUB_OUTPUT
           echo "deletions=$deletions" >> $GITHUB_OUTPUT
         
@@ -47,7 +50,7 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_REF: ${{ github.ref }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          MODIFIED_FILES_JSON: ${{ steps.files.outputs.modified }}
+          MODIFIED_FILES_JSON: ${{ steps.files.outputs.modified_json }}
           COMMIT_INSERTIONS: ${{ steps.files.outputs.insertions }}
           COMMIT_DELETIONS: ${{ steps.files.outputs.deletions }}
           
