@@ -65,7 +65,6 @@ class DiscordBotClient:
             total_deletions = commit_data.get("deletions", 0)
 
             fields = [
-                {"name": "\u200b", "value": "\u200b", "inline": True},
                 {"name": "📛 Autor", "value": author, "inline": True},
                 {"name": "🌿 Gałąź", "value": branch, "inline": True},
                 {"name": "🔗 SHA", "value": f"`{commit_sha}`", "inline": True},
@@ -73,15 +72,32 @@ class DiscordBotClient:
 
             if file_changes:
                 files_list = []
-                for filename, stats in file_changes.items():
+                max_filename_len = (
+                    max(len(f) for f in file_changes.keys()) if file_changes else 0
+                )
+
+                for filename, stats in list(file_changes.items()):
                     add = stats.get("add", 0)
                     del_count = stats.get("del", 0)
-                    if add > 0 or del_count > 0:
-                        files_list.append(f"`+{add} / -{del_count}` {filename}")
-                    else:
-                        files_list.append(f"`?` {filename}")
 
-                files_text = "\n".join(files_list[:20])
+                    if add > 0 and del_count == 0:
+                        # Plik zmieniony tylko z dodaniami
+                        files_list.append(f"+ {filename:<{max_filename_len}} +{add}")
+                    elif add == 0 and del_count > 0:
+                        # Plik zmieniony tylko z usunięciami
+                        files_list.append(
+                            f"- {filename:<{max_filename_len}} -{del_count}"
+                        )
+                    elif add > 0 or del_count > 0:
+                        # Plik zmieniony z dodaniami i usunięciami
+                        files_list.append(
+                            f"± {filename:<{max_filename_len}} +{add} -{del_count}"
+                        )
+                    else:
+                        # Plik bez zmian (e.g., permissions changed)
+                        files_list.append(f"  {filename:<{max_filename_len}} ±")
+
+                files_text = "```diff\n" + "\n".join(files_list) + "\n```"
                 if len(file_changes) > 20:
                     files_text += f"\n... i {len(file_changes) - 20} więcej"
 
