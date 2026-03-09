@@ -11,6 +11,8 @@ jobs:
       steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -19,6 +21,22 @@ jobs:
       
       - name: Instalacja dependencji
         run: pip install logging typing dotenv requests
+        
+      - name: Pobierz zmodyfikowane pliki
+        id: files
+        run: |
+          if [ -n "$(git rev-list --count HEAD~1..HEAD 2>/dev/null)" ]; then
+            modified=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            insertions=$(git diff --numstat HEAD~1 HEAD 2>/dev/null | awk '{add += $1} END {print add+0}')
+            deletions=$(git diff --numstat HEAD~1 HEAD 2>/dev/null | awk '{del += $2} END {print del+0}')
+          else
+            modified="[]"
+            insertions="0"
+            deletions="0"
+          fi
+          echo "modified=$modified" >> $GITHUB_OUTPUT
+          echo "insertions=$insertions" >> $GITHUB_OUTPUT
+          echo "deletions=$deletions" >> $GITHUB_OUTPUT
         
       - name: Wysyłanie powiadomienia na Discord
         env:
@@ -29,6 +47,8 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_REF: ${{ github.ref }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          MODIFIED_FILES_JSON: ${{ toJson(github.event.head_commit.modified) }}
+          MODIFIED_FILES_JSON: ${{ steps.files.outputs.modified }}
+          COMMIT_INSERTIONS: ${{ steps.files.outputs.insertions }}
+          COMMIT_DELETIONS: ${{ steps.files.outputs.deletions }}
           
         run: python .github/Skrypty/discord-powiadomienie.py

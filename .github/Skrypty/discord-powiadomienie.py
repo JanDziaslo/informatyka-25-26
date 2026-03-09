@@ -153,7 +153,10 @@ def main() -> int:
 
     modified_files_json = os.getenv("MODIFIED_FILES_JSON", "[]")
     try:
-        modified_files = json.loads(modified_files_json)
+        if modified_files_json in ("null", "None", "", None):
+            modified_files = []
+        else:
+            modified_files = json.loads(modified_files_json)
     except json.JSONDecodeError:
         modified_files = []
 
