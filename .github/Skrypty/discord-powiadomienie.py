@@ -1,7 +1,8 @@
+import json
 import logging
 import os
 import sys
-from typing import Dict
+from typing import Dict, List
 from dotenv import load_dotenv
 
 import requests
@@ -57,6 +58,33 @@ class DiscordBotClient:
             author = commit_data.get("author", "Nieznany")
             branch = commit_data.get("branch", "main")
             repo_url = commit_data.get("repo_url", f"https://github.com/{repo_name}")
+            modified_files: List[str] = commit_data.get("modified_files", [])
+            insertions = commit_data.get("insertions", 0)
+            deletions = commit_data.get("deletions", 0)
+
+            fields = [
+                {"name": "📛 Autor", "value": author, "inline": True},
+                {"name": "🌿 Gałąź", "value": branch, "inline": True},
+                {"name": "🔗 SHA", "value": f"`{commit_sha}`", "inline": True},
+            ]
+
+            if insertions > 0 or deletions > 0:
+                stats_text = f"+{insertions} / -{deletions}"
+                fields.append(
+                    {"name": "📊 Zmiany", "value": stats_text, "inline": True}
+                )
+
+            if modified_files:
+                files_text = "\n".join([f"- {f}" for f in modified_files[:15]])
+                if len(modified_files) > 15:
+                    files_text += f"\n... i {len(modified_files) - 15} więcej"
+                fields.append(
+                    {
+                        "name": "📁 Zmodyfikowane pliki",
+                        "value": files_text,
+                        "inline": False,
+                    }
+                )
 
             payload = {
                 "content": "📦 Nowy commit!",
@@ -64,26 +92,18 @@ class DiscordBotClient:
                     {
                         "title": f"Commit na gałęzi {branch}",
                         "description": commit_message[:1000],
-                        "color": 5814783,  # Fioletowy
-                        "fields": [
-                            {"name": "📛 Autor", "value": author, "inline": True},
-                            {"name": "🌿 Gałąź", "value": branch, "inline": True},
-                            {
-                                "name": "🔗 SHA",
-                                "value": f"`{commit_sha}`",
-                                "inline": True,
-                            },
-                        ],
+                        "color": 5814783,
+                        "fields": fields,
                         "footer": {"text": repo_name},
                     }
                 ],
                 "components": [
                     {
-                        "type": 1,  # Action Row
+                        "type": 1,
                         "components": [
                             {
-                                "type": 2,  # Button
-                                "style": 5,  # Link
+                                "type": 2,
+                                "style": 5,
                                 "label": "🔗 Zobacz w repozytorium",
                                 "url": repo_url,
                             },
@@ -131,11 +151,26 @@ def main() -> int:
     branch = os.getenv("GITHUB_REF", "refs/heads/main").replace("refs/heads/", "")
     repo_url = f"https://github.com/{repo_name}"
 
+    modified_files_json = os.getenv("MODIFIED_FILES_JSON", "[]")
+    try:
+        modified_files = json.loads(modified_files_json)
+    except json.JSONDecodeError:
+        modified_files = []
+
+    try:
+        insertions = int(os.getenv("COMMIT_INSERTIONS", "0"))
+        deletions = int(os.getenv("COMMIT_DELETIONS", "0"))
+    except ValueError:
+        insertions = 0
+        deletions = 0
+
     logger.info("=" * 60)
     logger.info("🤖 Wysyłanie powiadomienia o commicie na Discord")
     logger.info(f"Repo: {repo_name}")
     logger.info(f"Commit: {commit_sha[:7]}")
     logger.info(f"Autor: {author}")
+    logger.info(f"Pliki: {len(modified_files)}")
+    logger.info(f"Zmiany: +{insertions} / -{deletions}")
     logger.info("=" * 60)
 
     commit_data = {
@@ -145,6 +180,9 @@ def main() -> int:
         "author": author,
         "branch": branch,
         "repo_url": repo_url,
+        "modified_files": modified_files,
+        "insertions": insertions,
+        "deletions": deletions,
     }
 
     client = DiscordBotClient(bot_token, channel_id)
