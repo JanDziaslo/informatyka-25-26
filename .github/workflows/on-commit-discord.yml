@@ -18,7 +18,7 @@ jobs:
           python-version: '3.x'
       
       - name: Instalacja dependencji
-        run: pip install logging typing dotenv
+        run: pip install logging typing dotenv requests
         
       - name: Wysyłanie powiadomienia na Discord
         env:
