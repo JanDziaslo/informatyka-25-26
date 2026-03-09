@@ -9,6 +9,9 @@ jobs:
     Wyslanie-powiadomienia:
       runs-on: ubuntu-latest
       steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        
       - name: Wysyłanie powiadomienia na Discord
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
