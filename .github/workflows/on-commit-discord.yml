@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
     Wyslanie-powiadomienia:
@@ -26,21 +27,19 @@ jobs:
         id: files
         run: |
           if [ -n "$(git rev-list --count HEAD~1..HEAD 2>/dev/null)" ]; then
-            # Pobierz pliki ze zmianami i statystykami per plik
-            modified_json=$(git diff --numstat HEAD~1 HEAD 2>/dev/null | \
-              awk '{gsub(/-/, "0"); print "{\""$3"\":{\"add\":"$1",\"del\":"$2"}}"}' | \
-              jq -s 'add')
+            modified=$(git diff --numstat HEAD~1 HEAD 2>/dev/null | \
+              awk '{gsub(/-/, "0"); print $3":"$1":"$2}' | grep -v '^:$' | tr '\n' '|')
             insertions=$(git diff --numstat HEAD~1 HEAD 2>/dev/null | awk '{add += $1} END {print add+0}')
             deletions=$(git diff --numstat HEAD~1 HEAD 2>/dev/null | awk '{del += $2} END {print del+0}')
           else
-            modified_json="{}"
+            modified=""
             insertions="0"
             deletions="0"
           fi
-          echo "modified_json=$modified_json" >> $GITHUB_OUTPUT
+          echo "modified=$modified" >> $GITHUB_OUTPUT
           echo "insertions=$insertions" >> $GITHUB_OUTPUT
           echo "deletions=$deletions" >> $GITHUB_OUTPUT
-        
+          
       - name: Wysyłanie powiadomienia na Discord
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
@@ -50,7 +49,7 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_REF: ${{ github.ref }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          MODIFIED_FILES_JSON: ${{ steps.files.outputs.modified_json }}
+          MODIFIED_FILES_JSON: ${{ steps.files.outputs.modified }}
           COMMIT_INSERTIONS: ${{ steps.files.outputs.insertions }}
           COMMIT_DELETIONS: ${{ steps.files.outputs.deletions }}
           

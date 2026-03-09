@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import sys
-from typing import Dict, List, Any
+from typing import Dict, List
 from dotenv import load_dotenv
 
 import requests
@@ -164,13 +164,22 @@ def main() -> int:
     branch = os.getenv("GITHUB_REF", "refs/heads/main").replace("refs/heads/", "")
     repo_url = f"https://github.com/{repo_name}"
 
-    modified_files_json = os.getenv("MODIFIED_FILES_JSON", "{}")
+    modified_files_raw = os.getenv("MODIFIED_FILES_JSON", "")
     try:
-        if modified_files_json in ("null", "None", "", None):
+        if not modified_files_raw or modified_files_raw in ("null", "None", ""):
             file_changes = {}
         else:
-            file_changes = json.loads(modified_files_json)
-    except json.JSONDecodeError:
+            file_changes = {}
+            for entry in modified_files_raw.split("|"):
+                if entry:
+                    parts = entry.split(":")
+                    if len(parts) == 3:
+                        filename, add, del_count = parts
+                        file_changes[filename] = {
+                            "add": int(add),
+                            "del": int(del_count),
+                        }
+    except (ValueError, json.JSONDecodeError):
         file_changes = {}
 
     try:
