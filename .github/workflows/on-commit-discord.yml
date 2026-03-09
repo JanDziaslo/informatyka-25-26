@@ -1,0 +1,22 @@
+name: Discord powiadomienie o nowym commicie
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+    Wyslanie-powiadomienia:
+      runs-on: ubuntu-latest
+      steps:
+      - name: Wysyłanie powiadomienia na Discord
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REF: ${{ github.ref }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          
+        run: python .github/Skrypty/discord-powiadomienie.py

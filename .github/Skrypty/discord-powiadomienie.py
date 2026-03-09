@@ -1,0 +1,162 @@
+import logging
+import os
+import sys
+from typing import Dict
+from dotenv import load_dotenv
+
+import requests
+
+load_dotenv()  # Załaduj zmienne środowiskowe z .env
+
+# Konfiguracja logowania
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler("discord_notify.log", encoding="utf-8"),
+    ],
+)
+logger = logging.getLogger(__name__)
+
+
+class DiscordBotClient:
+    """Klient Discord Bot API do wysyłania wiadomości z przyciskami."""
+
+    API_BASE = "https://discord.com/api/v10"
+
+    def __init__(self, token: str, channel_id: str):
+        """
+        Inicjalizacja klienta Discord.
+
+        Args:
+            token: Token bota Discord
+            channel_id: ID kanału Discord
+        """
+        self.token = token
+        self.channel_id = channel_id
+        self.session = requests.Session()
+        self.session.headers.update(
+            {"Authorization": f"Bot {token}", "Content-Type": "application/json"}
+        )
+
+    def send_commit_notification(self, commit_data: Dict) -> bool:
+        """
+        Wyślij powiadomienie o nowym commicie na Discord.
+
+        Args:
+            commit_data: Słownik z danymi commita
+
+        Returns:
+            bool: True jeśli wysłanie się powiodło
+        """
+        try:
+            repo_name = commit_data.get("repo_name", "Repozytorium")
+            commit_sha = commit_data.get("commit_sha", "")[:7]
+            commit_message = commit_data.get("commit_message", "Brak opisu")
+            author = commit_data.get("author", "Nieznany")
+            branch = commit_data.get("branch", "main")
+            repo_url = commit_data.get("repo_url", f"https://github.com/{repo_name}")
+
+            payload = {
+                "content": "📦 Nowy commit!",
+                "embeds": [
+                    {
+                        "title": f"Commit na gałęzi {branch}",
+                        "description": commit_message[:1000],
+                        "color": 5814783,  # Fioletowy
+                        "fields": [
+                            {"name": "📛 Autor", "value": author, "inline": True},
+                            {"name": "🌿 Gałąź", "value": branch, "inline": True},
+                            {
+                                "name": "🔗 SHA",
+                                "value": f"`{commit_sha}`",
+                                "inline": True,
+                            },
+                        ],
+                        "footer": {"text": repo_name},
+                    }
+                ],
+                "components": [
+                    {
+                        "type": 1,  # Action Row
+                        "components": [
+                            {
+                                "type": 2,  # Button
+                                "style": 5,  # Link
+                                "label": "🔗 Zobacz w repozytorium",
+                                "url": repo_url,
+                            },
+                        ],
+                    }
+                ],
+            }
+
+            url = f"{self.API_BASE}/channels/{self.channel_id}/messages"
+            response = self.session.post(url, json=payload, timeout=10)
+
+            if response.status_code == 200:
+                logger.info(f"✓ Wysłano powiadomienie o commicie {commit_sha}")
+                return True
+            else:
+                logger.error(
+                    f"✗ Błąd Discord API {response.status_code}: {response.text}"
+                )
+                return False
+
+        except Exception as e:
+            logger.error(f"✗ Błąd podczas wysyłania powiadomienia: {e}")
+            return False
+
+
+def main() -> int:
+    """
+    Główna funkcja skryptu - wysyła powiadomienie o commicie.
+
+    Returns:
+        int: Kod wyjścia (0 = sukces, 1 = błąd)
+    """
+    bot_token = os.getenv("DISCORD_BOT_TOKEN")
+    channel_id = os.getenv("DISCORD_CHANNEL_ID")
+
+    if not bot_token or not channel_id:
+        logger.warning("⚠ Brak DISCORD_BOT_TOKEN lub DISCORD_CHANNEL_ID")
+        logger.warning("Wysyłanie powiadomień na Discord jest wyłączone")
+        return 0
+
+    repo_name = os.getenv("GITHUB_REPOSITORY", "JanDziaslo/informatyka-25-26")
+    commit_sha = os.getenv("GITHUB_SHA", "")
+    author = os.getenv("GITHUB_ACTOR", "Nieznany")
+    commit_message = os.getenv("COMMIT_MESSAGE", "Brak opisu commita")
+    branch = os.getenv("GITHUB_REF", "refs/heads/main").replace("refs/heads/", "")
+    repo_url = f"https://github.com/{repo_name}"
+
+    logger.info("=" * 60)
+    logger.info("🤖 Wysyłanie powiadomienia o commicie na Discord")
+    logger.info(f"Repo: {repo_name}")
+    logger.info(f"Commit: {commit_sha[:7]}")
+    logger.info(f"Autor: {author}")
+    logger.info("=" * 60)
+
+    commit_data = {
+        "repo_name": repo_name,
+        "commit_sha": commit_sha,
+        "commit_message": commit_message,
+        "author": author,
+        "branch": branch,
+        "repo_url": repo_url,
+    }
+
+    client = DiscordBotClient(bot_token, channel_id)
+    if client.send_commit_notification(commit_data):
+        logger.info("✓ Skrypt zakończony sukcesem")
+        logger.info("=" * 60)
+        return 0
+    else:
+        logger.error("✗ Nie udało się wysłać powiadomienia")
+        logger.info("=" * 60)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
