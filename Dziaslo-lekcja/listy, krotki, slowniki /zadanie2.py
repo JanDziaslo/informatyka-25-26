@@ -1,7 +1,6 @@
 tup = (10, 'Adam', 3.14, True, 'kot')
 print('Oryginalna krotka:', tup)
 
-# Krotki są niemutowalne - każda zmiana tworzy nową krotkę
 tup = tup + ('koniec',)
 tup = ('poczatek',) + tup
 tup = tup[:2] + ('trzecia',) + tup[2:]
