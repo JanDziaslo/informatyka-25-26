@@ -4,7 +4,6 @@ imiona = []
 for i in range(n):
     imiona.append(input(f'Podaj {i + 1 } imię: '))
 
-# Sposób 1: słownik
 print("Słownik")
 slownik = {}
 

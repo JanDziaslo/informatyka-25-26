@@ -17,10 +17,14 @@ print('3 najdroższe:')
 for nazwa, cena in posortowane[:3]:
     print(f'{nazwa} {cena}')
 
-print('\n3 najtańsze:')
+print()
+
+print('3 najtańsze:')
 posortowane = posortowane[::-1]
 
 for nazwa, cena in posortowane[:3]:
     print(f'{nazwa} {cena}')
 
-print(f'\nŚrednia cena: {sum(produkty.values()) / len(produkty):.2f}')
+print()
+
+print(f'Średnia cena: {sum(produkty.values()) / len(produkty):.2f}')
