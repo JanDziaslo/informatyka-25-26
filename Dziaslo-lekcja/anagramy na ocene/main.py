@@ -43,8 +43,7 @@ while len(slowo) < 3:
         print("Słowo jest za krótkie!")
 
 wyniki, zliczone = szukaj_anagramow(slowo)
-
-print(f"Ilość liter: {zliczone}")
+print(f"\nIlość liter: {zliczone}")
 print(f"Liczba anagramów: {len(wyniki)}\n")
 
 
