@@ -47,8 +47,6 @@ wyniki, zliczone = szukaj_anagramow(slowo)
 print(f"Ilość liter: {zliczone}")
 print(f"Liczba anagramów: {len(wyniki)}\n")
 
-#for w in wyniki:
- #   print(w)
 
 with open("anagramy.txt", "w", encoding="utf-8") as f:
     f.write(f"Słowo bazowe: {slowo}\n")
