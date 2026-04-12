@@ -40,7 +40,9 @@ def zrob_anagramy(wyraz):
 
     # Sortowanie po długości od najdłuższych
     lista_anagramow = list(znalezione)
-    lista_anagramow.sort(key=len, reverse=True)
+
+    # lambda po to, zeby jednocześnie sortować po długości i alfabetycznie w grupie, -len(x) bo chcemy od najwiekszej ilosci liter
+    lista_anagramow.sort(key=lambda x: (-len(x), x))
 
     return lista_anagramow, licznik
 
