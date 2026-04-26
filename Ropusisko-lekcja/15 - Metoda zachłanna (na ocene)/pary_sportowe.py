@@ -9,14 +9,17 @@ def maks_par(wagi, maks_waga):
         return []
 
     posortowane = sorted(wagi)
+
     pary = []
     lewo, prawo = 0, len(posortowane) - 1
 
     while lewo < prawo:
+        # Jeżeli najlżejszy + najcięższy < maksymalna waga, to robimy parę
         if posortowane[lewo] + posortowane[prawo] <= maks_waga:
             pary.append((posortowane[lewo], posortowane[prawo]))
             lewo += 1
             prawo -= 1
+        # Jak nie to usuwamy najcięższego bo i tak z nim nie utworzymy pary
         else:
             prawo -= 1
 
@@ -77,9 +80,12 @@ wagi = [w for _, w in zawodnicy]
 wynik = maks_par(wagi, max_waga)
 
 print(f"\nUtworzono {len(wynik)} par:")
-for i, (l, c) in enumerate(wynik):
-    print(f"  Para {i+1}: {l} kg + {c} kg = {l+c} kg")
+
+for i, (pierwszy, drugi) in enumerate(wynik):
+
+    print(f"  Para {i+1}: {pierwszy} kg + {drugi} kg = {pierwszy + drugi} kg")
 
 niewykorzystani = len(wagi) - len(wynik) * 2
+
 if niewykorzystani > 0:
     print(f"Niewykorzystani zawodnicy: {niewykorzystani}")

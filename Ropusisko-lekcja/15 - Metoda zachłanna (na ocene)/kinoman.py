@@ -69,8 +69,8 @@ while True:
     print(f"Dodane filmy: ")
 
     for i in range(len(filmy)):
-        s, k = filmy[i][1], filmy[i][2]
-        print(f"  Film {i+1}: {s//60:02d}:{s%60:02d} - {k//60:02d}:{k%60:02d}")
+        start, koniec = filmy[i][1], filmy[i][2]
+        print(f"  Film {i+1}: {start//60}:{start%60:02d} - {koniec//60}:{koniec%60:02d}")
 
     print()
     print("Co chcesz zrobić?")
@@ -87,5 +87,5 @@ wynik = kinoman(filmy)
 
 print(f"Wybrano {len(wynik)} filmów:")
 
-for fid, s, k in wynik:
-    print(f"  Film {fid}: {s//60:02d}h:{s%60:02d}m – {k//60:02d}h:{k%60:02d}m")
+for id_filmu, start, koniec in wynik:
+    print(f"  Film {id_filmu}: {start//60}:{start%60:02d} - {koniec//60:}:{koniec%60:02d}")
